@@ -1,0 +1,208 @@
+---
+title: "project"
+author: "Carlo Lopez"
+date: "2023-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+library(dplyr)
+library(tidyverse)
+summary(cars)
+library(ggplot2)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+hamstring_injuries <- read.csv("hamstring_injuries.csv")
+```
+
+
+final graph 1
+
+```{r}
+# Set the theme and plot the distribution of r_dorsiflexion
+g_2 <- ggplot(hamstring_injuries, 
+              aes(x = r_dorsiflexion, 
+                  fill = factor(r_injured))) +
+  geom_density(alpha = 0.5, color = "white") +  # Increase alpha for better visibility and add a white border
+  scale_fill_manual(labels = c("Healthy", "Injury"), 
+                    values = c("blue", "red"),
+                    name = "Injury Status") +  # Add a legend title
+  
+  # Modify x-axis limits to make it longer
+  xlim(range(c(15, 55))) +  # Adjust the range as needed
+  
+  # Modify theme settings
+  labs(fill = "Injury Status", 
+       x = "r_dorsiflexion",
+       title = "Distribution of r_dorsiflexion by Injury Status") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_text(size = 10, color = "black"),  # Adjust the size and color of axis text
+    axis.title = element_text(size = 12, color = "black"),  # Adjust the size and color of axis titles
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),  # Adjust the size, alignment, and add bold to the plot title
+    
+    # Customize legend
+    legend.position = "top",  # Move legend to the top
+    legend.background = element_rect(fill = "white", color = NA),  # Set legend background color
+    legend.title = element_text(size = 11, face = "bold"),  # Customize legend title
+    legend.text = element_text(size = 10)  # Customize legend text
+  )
+
+# Display the plot
+print(g_2)
+
+```
+
+Final Graph 2
+
+```{r}
+# Set the theme and plot the distribution of phq_nine
+g_2 <- ggplot(hamstring_injuries, 
+              aes(x = phq_nine, 
+                  fill = factor(r_injured))) +
+  geom_density(alpha = 0.5, color = "white") +  # Increase alpha for better visibility and add a white border
+  scale_fill_manual(labels = c("Healthy", "Injury"), 
+                    values = c("blue", "red"),
+                    name = "Injury Status") +  # Add a legend title
+  
+  # Modify x-axis limits
+  xlim(range(c(-10, 50))) + 
+  
+  # Modify theme settings
+  labs(fill = "Injury Status", 
+       x = "PHQ-9 Score",
+       title = "Distribution of PHQ-9 Scores by Injury Status") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_text(size = 10, color = "black"),  # Adjust the size and color of axis text
+    axis.title = element_text(size = 12, color = "black"),  # Adjust the size and color of axis titles
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),  # Adjust the size, alignment, and add bold to the plot title
+    
+    # Customize legend
+    legend.position = "top",  # Move legend to the top
+    legend.background = element_rect(fill = "white", color = NA),  # Set legend background color
+    legend.title = element_text(size = 11, face = "bold"),  # Customize legend title
+    legend.text = element_text(size = 10)  # Customize legend text
+  )
+
+# Display the plot
+print(g_2)
+
+```
+
+
+```{r}
+
+# Set the theme and plot the distribution of top_speed
+g_2 <- ggplot(hamstring_injuries, 
+              aes(x = top_speed, 
+                  fill = factor(r_injured))) +
+  geom_density(alpha = 0.5, color = "white") +
+  scale_fill_manual(labels = c("Healthy", "Injury"), 
+                    values = c("blue", "red"),
+                    name = "Injury Status") +
+  
+  # Modify x-axis limits
+  xlim(range(c(12, 29))) +  # Replace MIN_VALUE and MAX_VALUE with your desired limits
+  
+  # Modify theme settings
+  labs(fill = "Injury Status", 
+       x = "Top Speed",
+       title = "Distribution of Top Speed by Injury Status") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_text(size = 10, color = "black"),
+    axis.title = element_text(size = 12, color = "black"),
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+    
+    legend.position = "top",
+    legend.background = element_rect(fill = "white", color = NA),
+    legend.title = element_text(size = 11, face = "bold"),
+    legend.text = element_text(size = 10)
+  )
+
+# Display the plot
+print(g_2)
+
+```
+
+```{r}
+# Set the theme and plot the distribution of phq_nine
+g_2 <- ggplot(hamstring_injuries, 
+              aes(x = sitting_reach, 
+                  fill = factor(r_injured))) +
+  geom_density(alpha = 0.5, color = "white") +  # Increase alpha for better visibility and add a white border
+  scale_fill_manual(labels = c("Healthy", "Injury"), 
+                    values = c("blue", "red"),
+                    name = "Injury Status") +  # Add a legend title
+  
+  # Modify x-axis limits
+  xlim(range(c(10, 50))) + 
+  
+  # Modify theme settings
+  labs(fill = "Injury Status", 
+       x = "Sitting Reach",
+       title = "Sitting_reach Scores by Injury Status") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_text(size = 10, color = "black"),  # Adjust the size and color of axis text
+    axis.title = element_text(size = 12, color = "black"),  # Adjust the size and color of axis titles
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),  # Adjust the size, alignment, and add bold to the plot title
+    
+    # Customize legend
+    legend.position = "top",  # Move legend to the top
+    legend.background = element_rect(fill = "white", color = NA),  # Set legend background color
+    legend.title = element_text(size = 11, face = "bold"),  # Customize legend title
+    legend.text = element_text(size = 10)  # Customize legend text
+  )
+
+# Display the plot
+print(g_2)
+
+
+```
+
+```{r}
+max(hamstring_injuries$top_speed)
+```
+
+

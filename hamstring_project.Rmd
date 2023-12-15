@@ -1,0 +1,291 @@
+---
+title: "Hamstring_Project"
+author: "Page Freeman, Carlo Lopez, David Sobek, Kasey Choma, Quinn Murphy"
+date: "2023-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Library libraries 
+```{r}
+library(tidyverse)
+library(ggplot2)
+#install.packages("ggridges")
+library(ggridges)
+library(ggExtra)
+```
+
+Load the dataset
+```{r}
+hamstring <- read_csv("hamstring_injuries.csv")
+```
+```{r}
+#unique player ids - is there multiple dates from one athlete?
+
+unique(hamstring$player_id)
+#all are different athletes
+
+
+table(hamstring$r_injured) #14 injuries for R
+table(hamstring$l_injured) #10 injuries for L
+
+```
+
+Full dataset split between healthy or injured
+```{r}
+
+ham_injury <- hamstring[hamstring$r_injured == 1 | hamstring$l_injured == 1, ]
+
+ham_healthy <- hamstring[hamstring$r_injured != 1 &  hamstring$l_injured != 1, ]
+
+#making a duplicate for further needs 
+ham_healthy1 <- ham_healthy
+
+```
+
+Percent difference for two test: bridge and nb (nord bord)
+```{r}
+ham_healthy$percent_diff_bridge <- abs(((ham_healthy$bridge_l_mean - ham_healthy$bridge_r_mean) / ((ham_healthy$bridge_l_mean + ham_healthy$bridge_r_mean) / 2))) * 100
+
+ham_healthy$percent_diff_nb <- abs(((ham_healthy$nb_mean_l - ham_healthy$nb_mean_r)/ ((ham_healthy$nb_mean_l+ ham_healthy$nb_mean_r) /2 ))) *100
+
+
+#duplicating code for ham_healthy1
+ham_healthy1$percent_diff_bridge <- abs(((ham_healthy1$bridge_l_mean - ham_healthy1$bridge_r_mean) / ((ham_healthy1$bridge_l_mean + ham_healthy1$bridge_r_mean) / 2))) * 100
+
+ham_healthy1$percent_diff_nb <- abs(((ham_healthy1$nb_mean_l - ham_healthy1$nb_mean_r)/ ((ham_healthy1$nb_mean_l+ ham_healthy1$nb_mean_r) /2 ))) *100
+
+#duplicating code for ham_injury
+ham_injury$percent_diff_bridge <- abs(((ham_injury$bridge_l_mean - ham_injury$bridge_r_mean) / ((ham_injury$bridge_l_mean + ham_injury$bridge_r_mean) / 2))) * 100
+
+ham_injury$percent_diff_nb <- abs(((ham_injury$nb_mean_l - ham_injury$nb_mean_r)/ ((ham_injury$nb_mean_l+ ham_injury$nb_mean_r) /2 ))) *100
+```
+
+Write the csv to extract new code
+```{r}
+write_csv(ham_healthy, "healthy.csv")
+
+write_csv(ham_injury, "hamstring_injury.csv")
+
+
+```
+
+
+
+Centroid-based clustering
+
+
+Clustering set up 
+```{r}
+#loading the necessary libraries
+library(cluster) # Load cluster
+library(factoextra) # clustering algorithms & visualization
+library(sparcl) # Sparse Clustering
+library(teamcolors) # Load team colors
+library(ggimage) # Load ggimage
+library(ggdark) # Load ggdark
+
+
+#need to scale the data first since each column and/or test used is based on a different range and we want the clustering model to pay equal attention to all of our variables
+
+#taking out date columns, player id
+hamstring <- scale(ham_healthy[ , c(3:6,8:16, 19, 20)])
+# Add player id back to data frame 
+ham_healthy <- cbind.data.frame(ham_healthy$player_id, hamstring)
+#fixing name of player id column
+names(ham_healthy)[1] <- "player_id"
+
+```
+Clustering set-up 
+```{r}
+set.seed(123) # Set seed for reproducibility
+fit_1 <- kmeans(x = ham_healthy[,2:16], # Set data as explantory variables 
+                centers = 3,  # Set number of clusters
+                nstart = 25, # Set number of starts
+                iter.max = 100 ) # Set maximum number of iterations to use
+```
+
+
+Extract the clusters
+```{r}
+# Extract clusters
+clusters_1 <- fit_1$cluster
+# Extract centers
+centers_1 <- fit_1$centers
+
+# Check samples per cluster
+summary(as.factor(clusters_1))
+
+
+```
+
+```{r}
+# Check players in cluster 1
+cat("Cluster 1 players:\n")
+ham_healthy$player_id[clusters_1 == 1]
+# Check players in cluster 2
+cat("Cluster 2 players:\n")
+ham_healthy$player_id[clusters_1 == 2]
+# Check players in cluster 3
+cat("Cluster 3 players:\n")
+ham_healthy$player_id[clusters_1 == 3]
+```
+
+```{r}
+# Create vector of clusters
+cluster <- c(1: 3)
+# Extract centers
+center_df <- data.frame(cluster, centers_1)
+
+# Reshape the data
+center_reshape <- gather(center_df, features, values, bridge_r_mean:percent_diff_nb)
+# View first few rows
+head(center_reshape)
+
+# Create plot
+g_heat_1 <- ggplot(data = center_reshape, # Set dataset
+                   aes(x = features, y = cluster, fill = values)) + # Set aesthetics
+  scale_y_continuous(breaks = seq(1, 4, by = 1)) + # Set y axis breaks
+  geom_tile() + # Geom tile for heatmap
+  coord_equal() +  # Make scale the same for both axis
+  theme_set(theme_bw(base_size = 22) ) + # Set theme
+  scale_fill_gradient2(low = "blue", # Choose low color
+                       mid = "white", # Choose mid color
+                       high = "red", # Choose high color
+                       midpoint =0, # Choose mid point
+                       space = "Lab", 
+                       na.value ="grey", # Choose NA value
+                       guide = "colourbar", # Set color bar
+                       aesthetics = "fill") + # Select aesthetics to apply
+  coord_flip() # Rotate plot to view names clearly
+# Generate plot
+g_heat_1
+```
+Trying 2 clusters 
+```{r}
+set.seed(123) # Set seed for reproducibility
+fit_2 <- kmeans(x = ham_healthy[,2:16], # Set data as explantory variables 
+                centers = 2,  # Set number of clusters
+                nstart = 25, # Set number of starts
+                iter.max = 100 )
+```
+
+Extract the Clusters
+```{r}
+# Extract clusters
+clusters_2 <- fit_2$cluster
+# Extract centers
+centers_2 <- fit_2$centers
+
+# Check samples per cluster
+summary(as.factor(clusters_2))
+
+```
+
+```{r}
+# Check players in cluster 1
+cat("Cluster 1 players:\n")
+ham_healthy$player_id[clusters_2 == 1]
+# Check players in cluster 2
+cat("Cluster 2 players:\n")
+ham_healthy$player_id[clusters_2 == 2]
+```
+
+Clustering model
+```{r}
+# Create vector of clusters
+cluster2 <- c(1:2)
+# Extract centers
+center_df2 <- data.frame(cluster2, centers_2)
+
+# Reshape the data
+center_reshape2 <- gather(center_df2, features, values, bridge_r_mean:percent_diff_nb)
+# View first few rows
+head(center_reshape2)
+
+# Create plot
+g_heat_2 <- ggplot(data = center_reshape2, # Set dataset
+                   aes(x = features, y = cluster2, fill = values)) + # Set aesthetics
+  scale_y_continuous(breaks = seq(1, 4, by = 1)) + # Set y axis breaks
+  geom_tile() + # Geom tile for heatmap
+  coord_equal() +  # Make scale the same for both axis
+  theme_set(theme_bw(base_size = 22) ) + # Set theme
+  scale_fill_gradient2(low = "blue", # Choose low color
+                       mid = "white", # Choose mid color
+                       high = "red", # Choose high color
+                       midpoint =0, # Choose mid point
+                       space = "Lab", 
+                       na.value ="grey", # Choose NA value
+                       guide = "colourbar", # Set color bar
+                       aesthetics = "fill") + # Select aesthetics to apply
+  coord_flip() # Rotate plot to view names clearly
+# Generate plot
+g_heat_2
+```
+
+Extracting all player ids of clustering model for analysis 
+```{r}
+
+#2 cluster model 
+
+#group 1 player ids
+players_to_filter1 <- c(281933, 757012, 946264, 782022,  299418,919089,746322,724684,350344,639629,952954,963980,139721,543545,897545,487115,325124199946,157872,505616, 409101 ,184817 ,366115, 921542 ,327196, 667161 ,114656 ,689480 ,356998, 861780 ,373898, 435548 ,333045, 874402 ,837613, 689771,150267, 529220 ,326946, 776572 ,191886, 279357 ,432005 ,421241, 492881, 225697, 869026 ,693833, 321731 ,374176 ,382010, 211607, 882595, 796088, 335070, 861600, 191758, 753490, 356881, 910231, 496489 ,388349, 591072, 376425, 524843, 901321 ,983842, 234177, 402584 ,440487 ,386923, 241930,947669, 241609 ,513427 ,269645, 533589, 511619 ,713286, 918382, 500940 ,499141, 862576, 611873, 705929, 213105, 276172)
+
+#extracting out any player ids of data frame that are in "players_to_filter1"
+group1 <- ham_healthy1[ham_healthy1$player_id %in% players_to_filter1, ]
+
+#group 2 player ids 
+players_to_filter2 <- c(416551,911260,620109,941212,251342,418244,417964,823654,879197,566578 ,294064 ,923409, 494992 ,840408 ,401073 ,829525, 329686 ,339318, 777513, 515656, 309143, 120797, 146593, 218985 ,919491 ,695422 ,315240 ,387939, 291120 ,767318, 350296, 674301 ,997746 ,290663, 609759 ,344807,762613, 552345 ,627117, 153335, 259443, 463027, 269668, 362766, 346058, 194137 ,487473, 657057, 907896 ,175754, 671706, 831708, 191362, 503918,330199, 279395 ,160954, 485329, 784423, 493145 ,917619 ,959494, 126856 ,839996, 876841 ,204439, 951108, 695485, 339517, 408012 ,562008 ,668519, 470287, 992413 ,349627, 366442, 160166, 148963, 213450 ,200119, 929409, 923220, 615822 ,907554, 868331 ,547292, 215880 ,956075 ,778894, 464256, 732130, 291348, 255168, 988272, 679190, 638511, 731674, 235874, 443187 ,581514, 421017 ,736862, 349038, 753710, 604378, 646334 ,901679, 787932, 756988, 314194, 208024 ,595472, 803675 ,191269 ,548065, 754290 ,918392, 194762, 323267, 543266, 981095, 726577 ,284343,488900 ,149830, 939562, 953953, 580426, 323207 ,354905 ,347518, 634423, 901783 ,498922, 182588, 521305 ,970334, 567350 ,411555, 475545, 163209, 282067, 590198, 951343,156952, 794756 ,964787, 802817, 931108, 586697, 729619 ,230863, 559306 ,409766, 726515, 173956 ,139152, 461258, 501802, 883256,846372 ,134006,294077 ,953338, 539387, 753433, 257587, 672408, 126614 ,722466 ,847376 ,640111, 523163, 659714 ,812930, 584142 ,863054, 433147)
+  
+#extracting out any player ids of data frame that are in "players_to_filter2"
+group2 <- ham_healthy1[ham_healthy1$player_id %in% players_to_filter2, ]
+
+
+```
+
+Making an csv file for the groups
+```{r}
+write_csv(group1, "clust2_group1.csv")
+write_csv(group2, "clust2_group2.csv")
+```
+
+
+
+Analysis of 2 cluster model
+```{r}
+
+#means are vastly different for bridge means 
+#441-443
+mean(group1$bridge_r_mean)
+mean(group1$bridge_l_mean)
+
+#353-354
+mean(group2$bridge_r_mean)
+mean(group2$bridge_l_mean)
+
+#these are closer to group 2 - 368-370
+mean(ham_injury$bridge_r_mean)
+mean(ham_injury$bridge_l_mean)
+```
+```{r}
+#489-492
+mean(group1$nb_mean_l)
+mean(group1$nb_mean_r)
+
+#356-351
+mean(group2$nb_mean_l)
+mean(group2$nb_mean_r)
+
+#Again, similar to group 2, 399-386
+mean(ham_injury$nb_mean_l)
+mean(ham_injury$nb_mean_r)
+```
+
+Bridge test is a HUGE indicator of other correlations (and biggest value of in the clustering)
+- interesting since eccentric was what was talked about as "important" with Michael 
+
+*RUN cluster groups again to get percent difference variables?
+
